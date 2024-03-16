@@ -29,8 +29,55 @@ size_t Size(void* ptr)
 
 // implement merge sort
 // extraMemoryAllocated counts bytes of extra memory allocated
-void mergeSort(int pData[], int l, int r)
-{
+void mergeSort(int pData[], int l, int r) {
+    if (l < r) {
+        // find the mid index
+        int m = l + (r - l) / 2;
+
+        // call left and right recursivley
+        mergeSort(pData, l, m);
+        mergeSort(pData, m + 1, r);
+
+        // merge sorted l and r
+        int n1 = m - l + 1;
+        int n2 = r - m;
+
+        // allocate memory for temp arrays L and R
+        int* L = (int*)Alloc(n1 * sizeof(int));
+        int* R = (int*)Alloc(n2 * sizeof(int));
+
+        // copy from array to temp array
+        for (int i = 0; i < n1; i++) {
+            L[i] = pData[l + i];
+        }
+        for (int j = 0; j < n2; j++) {
+            R[j] = pData[m + 1 + j];
+        }
+
+        int i = 0;
+        int j = 0;
+        int k = l;
+        //merge both sorted arrays
+        while (i < n1 && j < n2) {
+            if (L[i] <= R[j]) {
+                pData[k++] = L[i++];
+            }
+            else {
+                pData[k++] = R[j++];
+            }
+        }
+
+        // copy leftover items
+        while (i < n1) {
+            pData[k++] = L[i++];
+        }
+        while (j < n2) {
+            pData[k++] = R[j++];
+        }
+
+        DeAlloc(L);
+        DeAlloc(R);
+    }
 }
 
 // parses input file to an integer array
@@ -40,7 +87,7 @@ int parseData(char *inputFileName, int **ppData)
 	int dataSz = 0;
 	int i, n, *data;
 	*ppData = NULL;
-	
+
 	if (inFile)
 	{
 		fscanf(inFile,"%d\n",&dataSz);
@@ -60,26 +107,27 @@ int parseData(char *inputFileName, int **ppData)
 
 		fclose(inFile);
 	}
-	
+
 	return dataSz;
 }
 
 // prints first and last 100 items in the data array
 void printArray(int pData[], int dataSz)
 {
-	int i, sz = dataSz - 100;
-	printf("\tData:\n\t");
-	for (i=0;i<100;++i)
-	{
-		printf("%d ",pData[i]);
-	}
-	printf("\n\t");
-	
-	for (i=sz;i<dataSz;++i)
-	{
-		printf("%d ",pData[i]);
-	}
-	printf("\n\n");
+    int i, sz = (dataSz > 100 ? dataSz - 100 : 0);
+    int firstHundred = (dataSz < 100 ? dataSz : 100);
+    printf("\tData:\n\t");
+    for (i=0;i<firstHundred;++i)
+    {
+        printf("%d ",pData[i]);
+    }
+    printf("\n\t");
+
+    for (i=sz;i<dataSz;++i)
+    {
+        printf("%d ",pData[i]);
+    }
+    printf("\n\n");
 }
 
 int main(void)
@@ -88,21 +136,21 @@ int main(void)
 	int i;
     double cpu_time_used;
 	char* fileNames[] = { "input1.txt", "input2.txt", "input3.txt", "input4.txt" };
-	
+
 	for (i=0;i<4;++i)
 	{
 		int *pDataSrc, *pDataCopy;
 		int dataSz = parseData(fileNames[i], &pDataSrc);
-		
+
 		if (dataSz <= 0)
 			continue;
-		
+
 		pDataCopy = (int *)malloc(sizeof(int)*dataSz);
-	
+
 		printf("---------------------------\n");
 		printf("Dataset Size : %d\n",dataSz);
 		printf("---------------------------\n");
-		
+
 		printf("Merge Sort:\n");
 		memcpy(pDataCopy, pDataSrc, dataSz*sizeof(int));
 		extraMemoryAllocated = 0;
@@ -113,9 +161,9 @@ int main(void)
 		printf("\truntime\t\t\t: %.1lf\n",cpu_time_used);
 		printf("\textra memory allocated\t: %d\n",extraMemoryAllocated);
 		printArray(pDataCopy, dataSz);
-		
+
 		free(pDataCopy);
 		free(pDataSrc);
 	}
-	
+
 }
